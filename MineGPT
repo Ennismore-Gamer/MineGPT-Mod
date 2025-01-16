@@ -1,0 +1,86 @@
+// MineGPT - ChatGPT Integration Mod for Minecraft
+
+package com.example.minegpt;
+
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
+import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ActionResult;
+import net.minecraft.server.MinecraftServer;
+
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.IOException;
+
+public class MineGPTMod {
+
+    // Your OpenAI API key goes here
+    private static final String OPENAI_API_KEY = "your-api-key-here"; 
+
+    public static void main(String[] args) {
+        // Entry point for the mod when starting the Minecraft game
+
+        // Example for testing
+        String playerMessage = "Hello, MineGPT!";
+        String gptResponse = getGPTResponse(playerMessage);
+        System.out.println(gptResponse);
+    }
+
+    // Function to call OpenAI API and get a response
+    private static String getGPTResponse(String prompt) {
+        // Use the OpenAI API to get a response for the prompt from the Minecraft player
+        String gptResponse = OpenAIAPI.callAPI(prompt); // Example method
+        return gptResponse;
+    }
+
+    // Sample method to call OpenAI API (you would need to implement an API call here)
+    private static class OpenAIAPI {
+        public static String callAPI(String prompt) {
+            String apiUrl = "https://api.openai.com/v1/completions";
+            String response = "";
+
+            try {
+                // Set up the HTTP connection
+                HttpURLConnection connection = (HttpURLConnection) new URL(apiUrl).openConnection();
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Authorization", "Bearer " + OPENAI_API_KEY);
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setDoOutput(true);
+
+                // Create the JSON request body
+                String requestBody = "{\n" +
+                        "  \"model\": \"text-davinci-003\",\n" +
+                        "  \"prompt\": \"" + prompt + "\",\n" +
+                        "  \"max_tokens\": 150\n" +
+                        "}";
+
+                // Send the request
+                try (OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8)) {
+                    writer.write(requestBody);
+                    writer.flush();
+                }
+
+                // Read the response
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                    StringBuilder responseBuilder = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        responseBuilder.append(line);
+                    }
+                    response = responseBuilder.toString();
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return response;
+        }
+    }
+}
